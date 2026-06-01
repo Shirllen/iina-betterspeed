@@ -32,8 +32,10 @@
         placeholder="z"
       />
       <p class="small secondary pref-help">
-        Uses mpv key binding format, for example: z, Shift+z, Ctrl+z. Changes
-        are applied to the Plugin menu within about one second.
+        Uses mpv key binding format, for example: z, Shift+z, Ctrl+z. BetterSpeed
+        captures this key directly instead of relying on a Plugin menu shortcut,
+        so it usually works without manually removing IINA's default binding for
+        the same key.
       </p>
     </div>
 
@@ -93,9 +95,9 @@
     <div class="pref-section">
       <p class="small secondary pref-help">
         BetterSpeed started as a PotPlayer-style Z-key speed toggle for IINA.
-        The toggle shortcut is still registered through the Plugin menu, and
-        IINA does not currently expose plugin-defined actions in the built-in
-        Key Bindings action list.
+        The toggle shortcut is captured by the plugin directly, but IINA still
+        does not expose plugin-defined actions in the built-in Key Bindings
+        action list.
       </p>
     </div>
   </body>

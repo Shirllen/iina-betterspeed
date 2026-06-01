@@ -14,6 +14,7 @@ var DEFAULT_TEMPORARY_SPEED = 2.0;
 var DEFAULT_HOLD_TRIGGER_DELAY_MS = 250;
 var SPEED_TOLERANCE = 0.0001;
 var shortcutCache = null;
+var activeShortcutKey = "";
 var holdKeyCache = null;
 var activeHoldKey = "";
 var isWindowLoaded = false;
@@ -288,21 +289,14 @@ function scheduleTemporarySpeed() {
 }
 
 function rebuildMenu() {
-  var shortcut = getShortcutKey();
   var item;
-  var options;
 
   menu.removeAllItems();
 
   try {
-    if (shortcut) {
-      options = { keyBinding: shortcut };
-      item = menu.item(MENU_TITLE, toggleSpeed, options);
-    } else {
-      item = menu.item(MENU_TITLE, toggleSpeed);
-    }
+    item = menu.item(MENU_TITLE, toggleSpeed);
   } catch (error) {
-    console.log("Invalid shortcut key '" + shortcut + "': " + error);
+    console.log("Failed to rebuild plugin menu: " + error);
     item = menu.item(MENU_TITLE, toggleSpeed);
   }
 
@@ -316,14 +310,7 @@ function rebuildMenu() {
       }
     }, 0);
   }
-  shortcutCache = shortcut;
-}
-
-function refreshMenuShortcut() {
-  var shortcut = getShortcutKey();
-  if (shortcut !== shortcutCache) {
-    rebuildMenu();
-  }
+  shortcutCache = getShortcutKey();
 }
 
 function clearHoldKeyListeners(key) {
@@ -333,6 +320,63 @@ function clearHoldKeyListeners(key) {
 
   input.onKeyDown(key, null, input.PRIORITY_HIGH);
   input.onKeyUp(key, null, input.PRIORITY_HIGH);
+}
+
+function clearShortcutKeyListener(key) {
+  if (!key) {
+    return;
+  }
+
+  input.onKeyDown(key, null, input.PRIORITY_HIGH);
+}
+
+function handleShortcutKeyDown(data) {
+  if (data.isRepeat) {
+    return true;
+  }
+
+  toggleSpeed();
+  return true;
+}
+
+function rebuildShortcutKeyListener() {
+  var shortcut = getShortcutKey();
+
+  if (activeShortcutKey && activeShortcutKey !== shortcut) {
+    clearShortcutKeyListener(activeShortcutKey);
+    activeShortcutKey = "";
+  }
+
+  if (!shortcut) {
+    shortcutCache = shortcut;
+    return;
+  }
+
+  if (activeShortcutKey === shortcut) {
+    shortcutCache = shortcut;
+    return;
+  }
+
+  try {
+    input.onKeyDown(
+      shortcut,
+      handleShortcutKeyDown,
+      input.PRIORITY_HIGH
+    );
+    activeShortcutKey = shortcut;
+  } catch (error) {
+    console.log("Invalid shortcut key '" + shortcut + "': " + error);
+    activeShortcutKey = "";
+  }
+
+  shortcutCache = shortcut;
+}
+
+function refreshShortcutKeyListener() {
+  var shortcut = getShortcutKey();
+  if (shortcut !== shortcutCache) {
+    rebuildShortcutKeyListener();
+  }
 }
 
 function showHoldKeyConflictWarningIfNeeded() {
@@ -481,7 +525,7 @@ function refreshHoldKeyListeners() {
 }
 
 function refreshBindings() {
-  refreshMenuShortcut();
+  refreshShortcutKeyListener();
   refreshHoldKeyListeners();
 }
 
@@ -540,5 +584,6 @@ event.on("iina.file-loaded", function () {
 });
 
 rebuildMenu();
+rebuildShortcutKeyListener();
 rebuildHoldKeyListeners();
 setInterval(refreshBindings, 1000);

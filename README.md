@@ -26,6 +26,7 @@ Source files:
 - If current speed is not `1.0x`, pressing the shortcut stores that speed and switches to `1.0x`.
 - If current speed is `1.0x`, pressing the shortcut switches back to the last remembered non-`1.0x` speed.
 - If no non-`1.0x` speed has been remembered yet, it toggles between `1.0x` and the fallback speed, which defaults to `2.0x`.
+- BetterSpeed captures this shortcut directly through the plugin input API instead of relying on a Plugin menu key binding, so keys like the default `z` usually work without first removing IINA's built-in binding for the same key.
 
 ### Temporary speed key
 
@@ -91,9 +92,10 @@ current input handling order.
 
 ## Limitation
 
-IINA's current plugin API lets plugins register menu items with shortcuts, but
-it does not expose plugin-defined actions inside the built-in `Key Bindings`
-action list.
+IINA's current plugin API does not expose plugin-defined actions inside the
+built-in `Key Bindings` action list, and input events are sent to the menu bar
+before plugin listeners. This is why `SPACE` still needs a one-time IINA rebind
+if you want true YouTube-style tap/hold behavior on the plain space key.
 
 ## Release Maintenance
 
