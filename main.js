@@ -16,6 +16,9 @@ var SPEED_TOLERANCE = 0.0001;
 var shortcutCache = null;
 var holdKeyCache = null;
 var activeHoldKey = "";
+var isWindowLoaded = false;
+var holdKeyConflictCache = "";
+var hasShownHoldKeyConflictWarning = false;
 var ignoredSpeedQueue = [];
 var temporaryHoldState = {
   active: false,
@@ -39,6 +42,20 @@ function isFiniteNumber(value) {
 function parseSpeed(value) {
   var speed = Number(value);
   return isFinite(speed) ? speed : NaN;
+}
+
+function normalizeKeyCode(code) {
+  var trimmedCode = trimString(code);
+
+  if (!trimmedCode) {
+    return "";
+  }
+
+  try {
+    return input.normalizeKeyCode(trimmedCode);
+  } catch (error) {
+    return trimmedCode.toUpperCase();
+  }
 }
 
 function isSameSpeed(left, right) {
@@ -96,6 +113,42 @@ function getTemporarySpeed() {
     return DEFAULT_TEMPORARY_SPEED;
   }
   return temporarySpeed;
+}
+
+function isSpaceKey(key) {
+  return normalizeKeyCode(key) === "SPACE";
+}
+
+function getRegisteredBindingForKey(key) {
+  var normalizedKey = normalizeKeyCode(key);
+  var bindings;
+
+  if (!normalizedKey) {
+    return null;
+  }
+
+  try {
+    bindings = input.getAllKeyBindings();
+  } catch (error) {
+    console.log("Failed to read current key bindings: " + error);
+    return null;
+  }
+
+  if (!bindings || !bindings[normalizedKey]) {
+    return null;
+  }
+
+  return bindings[normalizedKey];
+}
+
+function getIINACommandBindingForKey(key) {
+  var binding = getRegisteredBindingForKey(key);
+
+  if (!binding || !binding.isIINACommand) {
+    return null;
+  }
+
+  return binding;
 }
 
 function queueIgnoredSpeed(speed) {
@@ -254,7 +307,15 @@ function rebuildMenu() {
   }
 
   menu.addItem(item);
-  menu.forceUpdate();
+  if (isWindowLoaded) {
+    setTimeout(function () {
+      try {
+        menu.forceUpdate();
+      } catch (error) {
+        console.log("Failed to refresh plugin menu: " + error);
+      }
+    }, 0);
+  }
   shortcutCache = shortcut;
 }
 
@@ -274,10 +335,51 @@ function clearHoldKeyListeners(key) {
   input.onKeyUp(key, null, input.PRIORITY_HIGH);
 }
 
+function showHoldKeyConflictWarningIfNeeded() {
+  var holdKey = getHoldKey();
+  var message;
+
+  if (!holdKeyConflictCache || !isWindowLoaded || hasShownHoldKeyConflictWarning) {
+    return;
+  }
+
+  if (isSpaceKey(holdKey)) {
+    message = "BetterSpeed: remap IINA's SPACE shortcut first, then SPACE tap/hold will work.";
+  } else {
+    message = "BetterSpeed: remap the temporary speed key in IINA before hold-to-speed can work.";
+  }
+
+  try {
+    core.osd(message);
+  } catch (error) {
+    console.log("Failed to show hold key conflict warning: " + error);
+  }
+
+  hasShownHoldKeyConflictWarning = true;
+}
+
+function performSyntheticTapAction(holdKey) {
+  if (!isSpaceKey(holdKey)) {
+    return false;
+  }
+
+  try {
+    mpv.command("cycle", ["pause"]);
+    return true;
+  } catch (error) {
+    console.log("Failed to toggle pause for hold key '" + holdKey + "': " + error);
+    return false;
+  }
+}
+
 function replayOriginalHoldKeyAction() {
   var holdKey = activeHoldKey || getHoldKey();
 
   if (!holdKey) {
+    return;
+  }
+
+  if (performSyntheticTapAction(holdKey)) {
     return;
   }
 
@@ -296,6 +398,7 @@ function replayOriginalHoldKeyAction() {
 }
 
 function rebuildHoldKeyListeners() {
+  var holdKeyBinding;
   var holdKey = getHoldKey();
 
   if (activeHoldKey && activeHoldKey !== holdKey) {
@@ -307,11 +410,34 @@ function rebuildHoldKeyListeners() {
 
   if (!holdKey) {
     holdKeyCache = holdKey;
+    holdKeyConflictCache = "";
+    hasShownHoldKeyConflictWarning = false;
+    return;
+  }
+
+  holdKeyBinding = getIINACommandBindingForKey(holdKey);
+  if (holdKeyBinding) {
+    clearTemporaryHoldInteraction();
+    endTemporarySpeed();
+    clearHoldKeyListeners(activeHoldKey);
+    activeHoldKey = "";
+    holdKeyCache = holdKey;
+    holdKeyConflictCache = normalizeKeyCode(holdKey);
+    hasShownHoldKeyConflictWarning = false;
+    console.log(
+      "Temporary speed key '" +
+        holdKey +
+        "' is currently bound to IINA action '" +
+        holdKeyBinding.action +
+        "'. Remap that IINA shortcut first so BetterSpeed can detect holds."
+    );
+    showHoldKeyConflictWarningIfNeeded();
     return;
   }
 
   if (activeHoldKey === holdKey) {
     holdKeyCache = holdKey;
+    holdKeyConflictCache = "";
     return;
   }
 
@@ -333,11 +459,23 @@ function rebuildHoldKeyListeners() {
   }
 
   holdKeyCache = holdKey;
+  holdKeyConflictCache = "";
+  hasShownHoldKeyConflictWarning = false;
 }
 
 function refreshHoldKeyListeners() {
+  var holdKeyBinding;
+  var holdKeyConflict = "";
   var holdKey = getHoldKey();
-  if (holdKey !== holdKeyCache) {
+
+  if (holdKey) {
+    holdKeyBinding = getIINACommandBindingForKey(holdKey);
+    if (holdKeyBinding) {
+      holdKeyConflict = normalizeKeyCode(holdKey);
+    }
+  }
+
+  if (holdKey !== holdKeyCache || holdKeyConflict !== holdKeyConflictCache) {
     rebuildHoldKeyListeners();
   }
 }
@@ -390,6 +528,15 @@ event.on("mpv.speed.changed", function () {
 event.on("mpv.end-file", function () {
   clearTemporaryHoldInteraction();
   endTemporarySpeed();
+});
+
+event.on("iina.window-loaded", function () {
+  isWindowLoaded = true;
+  showHoldKeyConflictWarningIfNeeded();
+});
+
+event.on("iina.file-loaded", function () {
+  showHoldKeyConflictWarningIfNeeded();
 });
 
 rebuildMenu();

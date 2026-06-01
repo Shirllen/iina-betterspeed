@@ -29,11 +29,11 @@ Source files:
 
 ### Temporary speed key
 
-- A quick tap replays the key's existing IINA or mpv action.
-- With the default `SPACE`, that usually means pause or resume playback.
+- A quick tap on `SPACE` pauses or resumes playback directly from the plugin.
 - Holding the key briefly switches to a temporary playback speed, which defaults to `2.0x`.
 - Releasing the key restores the speed that was active before you held it down.
-- If you remap this feature to another key, that key's original long-press or repeat behavior is no longer preserved, because BetterSpeed takes over the hold gesture.
+- IINA sends menu shortcuts to itself before plugin listeners run. To use the default `SPACE` tap/hold behavior, first remove or remap IINA's own `SPACE` shortcut in `Settings > Key Bindings`; BetterSpeed will then provide tap-to-pause and hold-to-speed-up on `SPACE` by itself.
+- If you remap this feature to another key, that key's original long-press or repeat behavior is no longer preserved, because BetterSpeed takes over the hold gesture. If the key is still bound to an IINA command, BetterSpeed cannot intercept it until you remap that IINA shortcut too.
 
 The plugin also listens for normal speed changes in IINA and remembers the most
 recent non-`1.0x` value, even if you changed it outside the plugin action.
@@ -84,6 +84,10 @@ Defaults:
 - Fallback toggle speed: `2.0`
 - Temporary speed key: `SPACE`
 - Temporary speed: `2.0`
+
+Before using the default `SPACE` hold behavior, remove or remap IINA's own
+`SPACE` shortcut in `Settings > Key Bindings`. This is required by IINA's
+current input handling order.
 
 ## Limitation
 

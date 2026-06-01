@@ -62,12 +62,14 @@
       />
       <p class="small secondary pref-help">
         BetterSpeed is primarily designed to mimic YouTube-style SPACE behavior:
-        a quick tap replays the key's normal IINA or mpv action, while a brief
-        hold switches to the temporary speed until you release it. With the
-        default SPACE key, that usually means tap to pause or resume, hold to
-        speed up. Uses mpv key binding format, for example: SPACE, Shift+SPACE,
-        Ctrl+SPACE. Avoid choosing keys whose normal long-press repeat you want
-        to keep, such as seek keys. Leave it empty to disable this feature.
+        a quick tap pauses or resumes when the key is SPACE, while a brief hold
+        switches to the temporary speed until you release it. Important: IINA
+        sends menu shortcuts to itself before plugins can inspect them. To make
+        default SPACE tap/hold work, first remove or remap IINA's own SPACE
+        shortcut in Key Bindings. Uses mpv key binding format, for example:
+        SPACE, Shift+SPACE, Ctrl+SPACE. Avoid choosing keys that are still bound
+        to IINA commands, or whose normal long-press repeat you want to keep,
+        such as seek keys. Leave it empty to disable this feature.
       </p>
     </div>
 
@@ -82,8 +84,9 @@
         data-pref-key="temporary_speed"
       />
       <p class="small secondary pref-help">
-        Default: 2.0. BetterSpeed forwards quick taps to the configured key's
-        original binding and only hijacks the key when you hold it briefly.
+        Default: 2.0. BetterSpeed keeps SPACE tap-to-pause behavior internally
+        after you unbind IINA's own SPACE shortcut, and only hijacks the key
+        when you hold it briefly.
       </p>
     </div>
 
