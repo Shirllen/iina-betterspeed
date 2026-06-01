@@ -1,0 +1,22 @@
+{
+  "name": "BetterSpeed",
+  "identifier": "me.shirllen.iina.betterspeed",
+  "version": "1.1.3",
+  "ghRepo": "Shirllen/iina-betterspeed",
+  "ghVersion": 2,
+  "author": {
+    "name": "Shirllen"
+  },
+  "description": "PotPlayer-style Z speed toggle plus YouTube-style SPACE hold-to-speed-up controls for IINA.",
+  "entry": "main.js",
+  "preferencesPage": "preferences.html",
+  "preferenceDefaults": {
+    "shortcut_key": "z",
+    "fallback_speed": 2.0,
+    "hold_key": "SPACE",
+    "temporary_speed": 2.0
+  },
+  "permissions": [
+    "show-osd"
+  ]
+}

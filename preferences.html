@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>BetterSpeed Preferences</title>
+    <style>
+      body {
+        margin: 16px;
+        max-width: 560px;
+        line-height: 1.5;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        box-sizing: border-box;
+        margin-top: 4px;
+        width: 100%;
+      }
+
+      .pref-section + .pref-section {
+        margin-top: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="pref-section">
+      <label for="shortcut_key">Toggle shortcut key</label>
+      <input
+        id="shortcut_key"
+        type="text"
+        data-pref-key="shortcut_key"
+        placeholder="z"
+      />
+      <p class="small secondary pref-help">
+        Uses mpv key binding format, for example: z, Shift+z, Ctrl+z. Changes
+        are applied to the Plugin menu within about one second.
+      </p>
+    </div>
+
+    <div class="pref-section">
+      <label for="fallback_speed">Fallback toggle speed</label>
+      <input
+        id="fallback_speed"
+        type="number"
+        min="0.05"
+        step="0.05"
+        data-type="float"
+        data-pref-key="fallback_speed"
+      />
+      <p class="small secondary pref-help">
+        Used when there is no remembered non-1.0x speed yet. Default: 2.0.
+      </p>
+    </div>
+
+    <div class="pref-section">
+      <label for="hold_key">Temporary speed key</label>
+      <input
+        id="hold_key"
+        type="text"
+        data-pref-key="hold_key"
+        placeholder="SPACE"
+      />
+      <p class="small secondary pref-help">
+        BetterSpeed is primarily designed to mimic YouTube-style SPACE behavior:
+        a quick tap replays the key's normal IINA or mpv action, while a brief
+        hold switches to the temporary speed until you release it. With the
+        default SPACE key, that usually means tap to pause or resume, hold to
+        speed up. Uses mpv key binding format, for example: SPACE, Shift+SPACE,
+        Ctrl+SPACE. Avoid choosing keys whose normal long-press repeat you want
+        to keep, such as seek keys. Leave it empty to disable this feature.
+      </p>
+    </div>
+
+    <div class="pref-section">
+      <label for="temporary_speed">Temporary speed</label>
+      <input
+        id="temporary_speed"
+        type="number"
+        min="0.05"
+        step="0.05"
+        data-type="float"
+        data-pref-key="temporary_speed"
+      />
+      <p class="small secondary pref-help">
+        Default: 2.0. BetterSpeed forwards quick taps to the configured key's
+        original binding and only hijacks the key when you hold it briefly.
+      </p>
+    </div>
+
+    <div class="pref-section">
+      <p class="small secondary pref-help">
+        BetterSpeed started as a PotPlayer-style Z-key speed toggle for IINA.
+        The toggle shortcut is still registered through the Plugin menu, and
+        IINA does not currently expose plugin-defined actions in the built-in
+        Key Bindings action list.
+      </p>
+    </div>
+  </body>
+</html>
