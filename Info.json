@@ -1,9 +1,9 @@
 {
   "name": "BetterSpeed",
   "identifier": "me.shirllen.iina.betterspeed",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "ghRepo": "Shirllen/iina-betterspeed",
-  "ghVersion": 4,
+  "ghVersion": 5,
   "author": {
     "name": "Shirllen"
   },

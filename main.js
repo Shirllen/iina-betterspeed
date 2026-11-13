@@ -408,7 +408,11 @@ function performSyntheticTapAction(holdKey) {
   }
 
   try {
-    mpv.command("cycle", ["pause"]);
+    if (core.status.paused) {
+      core.resume();
+    } else {
+      core.pause();
+    }
     return true;
   } catch (error) {
     console.log("Failed to toggle pause for hold key '" + holdKey + "': " + error);
